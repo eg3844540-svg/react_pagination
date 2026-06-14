@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+/* eslint-disable import/no-extraneous-dependencies */
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './App.css';
 import { getNumbers } from './utils';
 import { Pagination } from './components/Pagination/Pagination';
@@ -6,18 +8,37 @@ import { Pagination } from './components/Pagination/Pagination';
 const items = getNumbers(1, 42).map(n => `Item ${n}`);
 
 export const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(5);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const perPage = Number(searchParams.get('perPage')) || 5;
 
   const start = (currentPage - 1) * perPage;
   const end = start + perPage;
+
+  const handlePageChange = (page: number) => {
+    setSearchParams({
+      page: String(page),
+      perPage: String(perPage),
+    });
+  };
+
+  const handlePerPageChange = (value: number) => {
+    setSearchParams({
+      page: '1',
+      perPage: String(value),
+    });
+  };
 
   return (
     <div className="container">
       <h1>Items with Pagination</h1>
 
       <p className="lead" data-cy="info">
-        {`Page ${currentPage} (items ${start + 1} - ${Math.min(end, items.length)} of ${items.length})`}
+        {`Page ${currentPage} (items ${start + 1} - ${Math.min(
+          end,
+          items.length,
+        )} of ${items.length})`}
       </p>
 
       <div className="form-group row">
@@ -28,8 +49,7 @@ export const App: React.FC = () => {
             className="form-control"
             value={perPage}
             onChange={event => {
-              setPerPage(Number(event.target.value));
-              setCurrentPage(1);
+              handlePerPageChange(Number(event.target.value));
             }}
           >
             <option value="3">3</option>
@@ -45,10 +65,10 @@ export const App: React.FC = () => {
       </div>
 
       <Pagination
-        total={42}
+        total={items.length}
         perPage={perPage}
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
       />
 
       <ul>
